@@ -47,7 +47,7 @@ public:
 
 	void start()
 	{
-		socket_.async_read_some(boost::asio::buffer(head_),
+		boost::asio::async_read(socket_,boost::asio::buffer(head_),
 			boost::bind(&session::handle_read_header,
 			shared_from_this(),
 			boost::asio::placeholders::error,
@@ -58,7 +58,7 @@ public:
 	{
 		if (!error)
 		{
-			if (bytes_transferred < sizeof(CPack))
+			if (bytes_transferred < 4)
 			{
 				return;
 			}
@@ -70,9 +70,9 @@ public:
 			{
 				return;
 			}
-
 			boost::shared_array<char> buff(new char[nLen]);
-			socket_.async_read_some(boost::asio::buffer(buff.get(),nLen),
+			//不能使用async_read_some 
+			boost::asio::async_read(socket_,boost::asio::buffer(buff.get(),nLen),
 				boost::bind(&session::handle_read_body,
 				shared_from_this(),
 				boost::asio::placeholders::error,
@@ -80,7 +80,7 @@ public:
 		}
 		else
 		{
-
+			std::cout << error.message() << std::endl;
 		}
 	}
 
@@ -89,7 +89,7 @@ public:
 	{
 		if (!error)
 		{
-			socket_.async_read_some(boost::asio::buffer(head_),
+			boost::asio::async_read(socket_,boost::asio::buffer(head_),
 				boost::bind(&session::handle_read_header,
 				shared_from_this(),
 				boost::asio::placeholders::error,
@@ -97,7 +97,7 @@ public:
 		}
 		else
 		{
-
+			std::cout << error.message() << std::endl;
 		}
 	}
 
@@ -107,7 +107,7 @@ public:
 		boost::shared_array<char> buff_(new char[_nLen]);
 		CPack *pCPack = (CPack*)buff_.get();
 		pCPack->nLen = nLen;
-		memcpy((void*)pCPack, pBuff, nLen);
+		memcpy((void*)pCPack->aBody, pBuff, nLen);
 
 		socket_.async_write_some(
 			boost::asio::buffer(buff_.get(), _nLen),
@@ -123,7 +123,7 @@ public:
 		}
 		else
 		{
-		
+
 		}
 	}
 
@@ -178,7 +178,7 @@ public:
 	void update()
 	{
 		io_service_.poll();
-		
+
 	}
 private:
 	boost::asio::io_service& io_service_;
