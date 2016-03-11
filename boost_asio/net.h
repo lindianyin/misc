@@ -58,7 +58,7 @@ public:
 	{
 		if (!error)
 		{
-			if (bytes_transferred < 4)
+			if (bytes_transferred < sizeof(CPack));
 			{
 				return;
 			}
